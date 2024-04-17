@@ -4,6 +4,9 @@ from scipy import signal
 from math import pi as pi
 
 class Type_1_Compensator:
+    def __init__(self):
+        self.type = 1
+
     def update_frequencies(self, fp0,r1):
         self.fp0=fp0
         self.r1=r1
@@ -20,6 +23,8 @@ class Type_1_Compensator:
         self.sys = signal.TransferFunction(self.numerator, self.denominator)
 
 class Type_2_Compensator:
+    def __init__(self):
+        self.type = 2
     def update_frequencies(self, fp0, fp1, fz1, r1):
         self.fp0=fp0
         self.fp1=fp1
@@ -52,6 +57,9 @@ class Type_2_Compensator:
         print("Gain:", gain)
 
 class Type_3_Compensator:
+    def __init__(self):
+        self.type = 3
+
     def update_frequencies(self, fp0, fp1, fp2, fz1, fz2, r1):
         self.fp0=fp0
         self.fp1=fp1

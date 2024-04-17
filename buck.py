@@ -5,6 +5,7 @@ from math import pi as pi
 
 class Buck:
     def __init__(self, supply_voltage=20, output_voltage=5,DI=0.1, op_pos=15, op_neg=-15, L=0.000056, c = 0.000500, ESR=1, r=1, f=10000):
+        self.type = "Buck"
         self.supply_voltage = supply_voltage
         self.output_voltage = output_voltage
         self.DI = DI
