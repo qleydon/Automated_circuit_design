@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
+from control import TransferFunction, margin
 from math import pi as pi
 
 class Type_1_Compensator:
@@ -18,9 +19,10 @@ class Type_1_Compensator:
         self.fp0 = 1/(2*pi*r1*c1)
 
     def update_sys(self):
-        self.numerator = [1,0]
-        self.denominator = [self.c1* self.r1]
+        self.numerator = [1]
+        self.denominator = [self.c1* self.r1,0]
         self.sys = signal.TransferFunction(self.numerator, self.denominator)
+        comp_margins(self)
 
 class Type_2_Compensator:
     def __init__(self):
@@ -48,13 +50,7 @@ class Type_2_Compensator:
         self.numerator = [self.c1 * self.r2, 1]
         self.denominator = [self.r1 * self.c1 * self.c3 * self.r2, (self.c1+ self.c3)*self.r1, 0]
         self.sys = signal.TransferFunction(self.numerator, self.denominator)
-        # Convert transfer function to zeros, poles, and gain form
-        zeros, poles, gain = signal.tf2zpk(self.numerator, self.denominator)
-
-        # Print the extracted zeros, poles, and gain
-        print("Zeros:", zeros/1000,"k")
-        print("Poles:", poles/1000,"k")
-        print("Gain:", gain)
+        comp_margins(self)
 
 class Type_3_Compensator:
     def __init__(self):
@@ -88,21 +84,26 @@ class Type_3_Compensator:
         self.fz2 = 1/(2*pi*r2*c1)
 
     def update_sys(self):
-        numerator = [self.c1*self.c2*self.r1*self.r2 + self.c1*self.c2*self.r2 * self.r3, self.c2*(self.r1+self.r2) + self.c1*self.r2, 1]
+        self.numerator = [self.c1*self.c2*self.r1*self.r2 + self.c1*self.c2*self.r2 * self.r3, self.c2*(self.r1+self.r2) + self.c1*self.r2, 1]
         #denominator = [self.c1 * self.c2 * self.c3 * self.r1* self.r2 * self.r3, self.r1*self.c1*(self.c2*self.r3 + self.c3 * self.r2 + 1), 0]
         a = self.r1*self.c1
         b = self.c2*self.r3
         c = self.r2*self.c3
-        denominator = [a*b*c, a*b+a*c, a, 0]
-        self.sys = signal.TransferFunction(numerator, denominator)
-        # Convert transfer function to zeros, poles, and gain form
-        zeros, poles, gain = signal.tf2zpk(numerator, denominator)
+        self.denominator = [a*b*c, a*b+a*c, a, 0]
+        self.sys = signal.TransferFunction(self.numerator, self.denominator)
+        comp_margins(self)
 
-        # Print the extracted zeros, poles, and gain
-        print("Zeros:", zeros/1000,"k")
-        print("Poles:", poles/1000,"k")
-        print("Gain:", gain)
-
+def comp_margins(comp):
+    sys = TransferFunction(comp.numerator, comp.denominator)
+    print("\nFrom Control:")
+    print("Zeros:", sys.zeros())
+    print("Poles:", sys.poles())
+    print("Gain:", sys.dcgain())
+    gain_margin, phase_margin, G_cross, P_cross = margin(sys)  # Gain and phase margins
+    print("Gain Margin (dB):", 20 * np.log10(gain_margin))
+    print("Phase Margin (degrees):", phase_margin)
+    print("Gain Crossover:", G_cross)
+    print("Phase Crossover:", P_cross)
 
 if __name__ == "__main__":
     comp = Type_3_Compensator()

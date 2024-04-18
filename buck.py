@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
+from control import TransferFunction, margin
 from math import pi as pi
+from math import sqrt
 
 class Buck:
     def __init__(self, supply_voltage=20, output_voltage=5,DI=0.1, op_pos=15, op_neg=-15, L=0.000056, c = 0.000500, ESR=1, r=1, f=10000):
@@ -42,13 +44,20 @@ class Buck:
         self.numerator = [self.r]
         self.denominator = [self.r * self.c * self.L, self.L, self.r]
         self.sys = signal.TransferFunction(self.numerator, self.denominator)
-        # Convert transfer function to zeros, poles, and gain form
-        zeros, poles, gain = signal.tf2zpk(self.numerator, self.denominator)
+        self.circuit_margins()
+        
+    def circuit_margins(self):
+        sys = TransferFunction(self.numerator, self.denominator)
+        print("\nFrom Control:")
+        print("Zeros:", sys.zeros())
+        print("Poles:", sys.poles())
+        print("Gain:", sys.dcgain())
+        gain_margin, phase_margin, G_cross, P_cross = margin(sys)  # Gain and phase margins
+        print("Gain Margin (dB):", 20 * np.log10(gain_margin))
+        print("Phase Margin (degrees):", phase_margin)
+        print("Gain Crossover:", G_cross)
+        print("Phase Crossover:", P_cross)
 
-        # Print the extracted zeros, poles, and gain
-        print("Zeros:", zeros/1000,"k")
-        print("Poles:", poles/1000,"k")
-        print("Gain:", gain)
 
     
 
