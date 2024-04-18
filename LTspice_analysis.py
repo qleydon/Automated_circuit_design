@@ -54,8 +54,7 @@ class Spice:
             self.netlist_comp.set_component_value('Cc1', self.engineering_notation(self.comp.c1))
             # run file
             self.LTC_comp.run(self.netlist_comp)
-            if plt:
-                self.plot(pathjoin(self.output_folder, 'Compensator1_AC_1.raw'), ("V(v_compensated)",))
+            raw_file_path = pathjoin(self.output_folder,'Compensator1_AC_1.raw')
 
         elif(comp.type == 2):
             self.LTC_comp.create_netlist(pathjoin(self.directory, 'Compensator2_AC.asc'))
@@ -67,8 +66,8 @@ class Spice:
             self.netlist_comp.set_component_value('Cc3', self.engineering_notation(self.comp.c3))
             # run file
             self.LTC_comp.run(self.netlist_comp)
-            if plt:
-                self.plot(pathjoin(self.output_folder, 'Compensator2_AC_1.raw'), ("V(v_compensated)",))
+            raw_file_path = pathjoin(self.output_folder,'Compensator2_AC_1.raw')
+            
 
         elif(comp.type == 3):
             self.LTC_comp.create_netlist(pathjoin(self.directory, 'Compensator3_AC.asc'))
@@ -82,8 +81,12 @@ class Spice:
             self.netlist_comp.set_component_value('Cc3', self.engineering_notation(self.comp.c3))
             # run file
             self.LTC_comp.run(self.netlist_comp)
-            if plt:
-                self.plot(pathjoin(self.output_folder, 'Compensator3_AC_1.raw'), ("V(v_compensated)",))
+            raw_file_path = pathjoin(self.output_folder,'Compensator3_AC_1.raw')
+        
+        if plt:
+            while not os.path.exists(raw_file_path):
+                time.sleep(0.1)  # Wait for a short duration before checking again
+            self.plot(raw_file_path, ("V(v_compensated)",))
 
     def update_transient_settings(self, voltage_cmd = None, runtime = None):
         if voltage_cmd is not None:
@@ -106,11 +109,10 @@ class Spice:
             self.netlist_T.set_component_value('Cc1', self.engineering_notation(self.comp.c1))
             # run file
             self.LTC_T.run(self.netlist_T)
-            self.plot(pathjoin(self.output_folder, 'buck_combined_Type_1_1.raw'), ("V(vout)","V(v_cmd)"))
+            raw_file_path = pathjoin(self.output_folder,'buck_combined_Type_1_1.raw')
 
         elif(self.comp.type == 2):
             self.LTC_T.create_netlist(pathjoin(self.directory, 'buck_combined_Type_2.asc'))
-            self.netlist_T = SpiceEditor(pathjoin(self.directory, 'buck_combined_Type_2.net'))
             # update simulation
             self.netlist_T.set_parameters(Tend = self.runtime)
             self.netlist_T.set_element_model('V2', self.voltage_cmd)
@@ -121,7 +123,7 @@ class Spice:
             self.netlist_T.set_component_value('Cc3', self.engineering_notation(self.comp.c3))
             # run file
             self.LTC_T.run(self.netlist_T)
-            self.plot(pathjoin(self.output_folder, 'buck_combined_Type_2_1.raw'), ("V(vout)","V(v_cmd)"))
+            raw_file_path = pathjoin(self.output_folder,'buck_combined_Type_2_1.raw')
 
         elif(self.comp.type == 3):
             self.LTC_T.create_netlist(pathjoin(self.directory, 'buck_combined_Type_3.asc'))
@@ -138,7 +140,11 @@ class Spice:
             self.netlist_T.set_component_value('Cc3', self.engineering_notation(self.comp.c3))
             # run file
             self.LTC_T.run(self.netlist_T)
-            self.plot(pathjoin(self.output_folder, 'buck_combined_Type_3_1.raw'), ("V(vout)","V(v_cmd)"))
+            raw_file_path = pathjoin(self.output_folder,'buck_combined_Type_3_1.raw')
+
+        while not os.path.exists(raw_file_path):
+            time.sleep(0.1)  # Wait for a short duration before checking again
+        self.plot(raw_file_path, ("V(vout)","V(v_cmd)"))
 
 
     def engineering_notation(self, number):
@@ -240,8 +246,9 @@ class Spice:
                     title = f"{trace.name} [{self.what_to_units(trace.whattype)}]"
                 ax.set_title(title)
 
-            print("for trace", trace)
-            frequency_analysis.find_margins(x, mag_f, -phase_f)
+            if 'complex' in LTR.flags:
+                print("for trace", trace)
+                frequency_analysis.find_margins(x, mag_f, -phase_f)
 
 
         plt.figlegend()
